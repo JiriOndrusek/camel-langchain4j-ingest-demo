@@ -1,0 +1,19 @@
+- route:
+    id: ingest
+    from:
+      uri: kamelet:langchain4j-ingest-file-source
+      parameters:
+        directory: docs
+        delay: 2000
+        idempotentRepository: "#bean:register"
+      steps:
+        - to:
+            uri: kamelet:tika-extract-text-action
+        - to:
+            uri: kamelet:langchain4j-ingest-sink
+            parameters:
+              pipelineName: docs
+        - log:
+            message: "ingest: ${body.documentId} -> ${body.outcome} (${body.segmentsWritten} segments)"
+        - process:
+            ref: snapshot
