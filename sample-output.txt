@@ -1,0 +1,58 @@
+# Real output of this example: Camel JBang 4.23.0 on JDK 21, no cloud account.
+# Kept: the lines that show ingestion and retrieval. Trimmed: date, level, pid, thread and logger of every line.
+# Each run is `./run.sh --max-seconds=N`, so that it stops by itself.
+
+## Run 1: first start, empty data/ (--max-seconds=20)
+# 4 files ingested (the register bean and the ONNX model show in the first lines), then the 5 questions are answered.
+13:52:14  Binding bean: register (type: FileIdempotentRepository) to the registry
+13:52:19  Autowired property: embeddingModel on component: langchain4j-ingest as exactly one instance of type: EmbeddingModel (AllMiniLmL6V2EmbeddingModel) found in the registry
+13:52:20  Apache Camel 4.23.0 (ingest) started in 700ms (build:0ms init:0ms start:700ms boot:7s147ms)
+13:52:22  ingest: q3-report.pdf -> INGESTED (1 segments)
+13:52:23  ingest: vacation-policy.md -> INGESTED (1 segments)
+13:52:24  ingest: wifi.txt -> INGESTED (1 segments)
+13:52:25  ingest: expenses.md -> INGESTED (1 segments)
+13:52:30  ask: How much did revenue grow? -> q3-report.pdf (score 0.7306063603399807): Q3 report Revenue grew twelve percent in the third quarter, while support tickets fell by a third.
+13:52:30  ask: How many vacation days do I get? -> vacation-policy.md (score 0.8706010177834411): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:52:30  ask: What is the guest wifi called? -> wifi.txt (score 0.878304982246576): Guest Wi-Fi: the network is called camel-guest. The password changes every Monday and is printed at the reception desk.
+13:52:30  ask: When do I have to upload receipts? -> expenses.md (score 0.7611979894609131): # Expenses Expenses above 200 EUR need approval from your team lead. Upload the receipts within 14 days, or the expense is not refunded.
+13:52:30  ask: Is there a sabbatical? -> vacation-policy.md (score 0.6362932566581546): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:52:40  Apache Camel 4.23.0 (ingest) shutdown in 11ms (uptime:20s)
+
+## Run 2: restart, edit while running (--max-seconds=38)
+# Nothing is ingested at the start: the register skips all 4 files and the first ask round runs on the restored store.
+# After `echo 'Sabbatical: after 5 years you can take 3 months of unpaid leave.' >> docs/vacation-policy.md` only that file is ingested again;
+# the sabbatical question now finds the new sentence (score 0.636 -> 0.770). The old segment is still in the store (Q2 returns it).
+13:53:02  Apache Camel 4.23.0 (ingest) started in 712ms (build:0ms init:0ms start:712ms boot:6s780ms)
+13:53:12  ask: How much did revenue grow? -> q3-report.pdf (score 0.7306063603399807): Q3 report Revenue grew twelve percent in the third quarter, while support tickets fell by a third.
+13:53:12  ask: How many vacation days do I get? -> vacation-policy.md (score 0.8706010177834411): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:53:12  ask: What is the guest wifi called? -> wifi.txt (score 0.878304982246576): Guest Wi-Fi: the network is called camel-guest. The password changes every Monday and is printed at the reception desk.
+13:53:12  ask: When do I have to upload receipts? -> expenses.md (score 0.7611979894609131): # Expenses Expenses above 200 EUR need approval from your team lead. Upload the receipts within 14 days, or the expense is not refunded.
+13:53:12  ask: Is there a sabbatical? -> vacation-policy.md (score 0.6362932566581546): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:53:14  --- edited docs/vacation-policy.md ---
+13:53:16  ingest: vacation-policy.md -> INGESTED (1 segments)
+13:53:32  ask: How much did revenue grow? -> q3-report.pdf (score 0.7306063603399807): Q3 report Revenue grew twelve percent in the third quarter, while support tickets fell by a third.
+13:53:32  ask: How many vacation days do I get? -> vacation-policy.md (score 0.8706010177834411): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:53:32  ask: What is the guest wifi called? -> wifi.txt (score 0.878304982246576): Guest Wi-Fi: the network is called camel-guest. The password changes every Monday and is printed at the reception desk.
+13:53:32  ask: When do I have to upload receipts? -> expenses.md (score 0.7611979894609131): # Expenses Expenses above 200 EUR need approval from your team lead. Upload the receipts within 14 days, or the expense is not refunded.
+13:53:32  ask: Is there a sabbatical? -> vacation-policy.md (score 0.770425852714385): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March. Sabbatical: after 5 years you can take 3 months of unpaid leave.
+13:53:40  Apache Camel 4.23.0 (ingest) shutdown in 11ms (uptime:38s)
+
+## Run 3: restart, nothing changed (--max-seconds=15)
+# No `ingest:` line. The answers come from data/store.json.
+13:54:01  Apache Camel 4.23.0 (ingest) started in 607ms (build:0ms init:0ms start:607ms boot:6s807ms)
+13:54:11  ask: How much did revenue grow? -> q3-report.pdf (score 0.7306063603399807): Q3 report Revenue grew twelve percent in the third quarter, while support tickets fell by a third.
+13:54:11  ask: How many vacation days do I get? -> vacation-policy.md (score 0.8706010177834411): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March.
+13:54:11  ask: What is the guest wifi called? -> wifi.txt (score 0.878304982246576): Guest Wi-Fi: the network is called camel-guest. The password changes every Monday and is printed at the reception desk.
+13:54:11  ask: When do I have to upload receipts? -> expenses.md (score 0.7611979894609131): # Expenses Expenses above 200 EUR need approval from your team lead. Upload the receipts within 14 days, or the expense is not refunded.
+13:54:11  ask: Is there a sabbatical? -> vacation-policy.md (score 0.770425852714385): # Vacation policy Every employee gets 25 days of paid vacation per year. Up to 5 unused days can be carried over to the next year, until 31 March. Sabbatical: after 5 years you can take 3 months of unpaid leave.
+13:54:16  Apache Camel 4.23.0 (ingest) shutdown in 9ms (uptime:15s)
+
+## Run 4: restart after `rm data/store.json`, register kept (--max-seconds=15)
+# No `ingest:` line either, and the store is empty: a persistent register needs a persistent store.
+13:54:28  Apache Camel 4.23.0 (ingest) started in 600ms (build:0ms init:0ms start:600ms boot:6s852ms)
+13:54:38  ask: How much did revenue grow? -> no hit, the store is empty
+13:54:38  ask: How many vacation days do I get? -> no hit, the store is empty
+13:54:38  ask: What is the guest wifi called? -> no hit, the store is empty
+13:54:38  ask: When do I have to upload receipts? -> no hit, the store is empty
+13:54:38  ask: Is there a sabbatical? -> no hit, the store is empty
+13:54:43  Apache Camel 4.23.0 (ingest) shutdown in 8ms (uptime:15s)

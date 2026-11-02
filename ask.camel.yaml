@@ -1,0 +1,39 @@
+- route:
+    id: ask
+    from:
+      uri: timer:ask
+      parameters:
+        delay: 10000
+        period: 20000
+      steps:
+        - setBody:
+            expression:
+              constant:
+                expression: "How much did revenue grow?;How many vacation days do I get?;What is the guest wifi called?;When do I have to upload receipts?;Is there a sabbatical?"
+        - split:
+            expression:
+              tokenize:
+                token: ";"
+            steps:
+              - setVariable:
+                  name: question
+                  expression:
+                    simple:
+                      expression: "${body}"
+              - to:
+                  uri: langchain4j-embeddingstore:docs
+                  parameters:
+                    action: SEARCH
+                    maxResults: 1
+              - choice:
+                  when:
+                    - expression:
+                        simple:
+                          expression: "${body.isEmpty()}"
+                      steps:
+                        - log:
+                            message: "ask: ${variable.question} -> no hit, the store is empty"
+                  otherwise:
+                    steps:
+                      - log:
+                          message: "ask: ${variable.question} -> ${body[0].embedded.metadata.getString('camel_ingest_document_id')} (score ${body[0].score}): ${normalizeWhitespace(${body[0].embedded.text})}"

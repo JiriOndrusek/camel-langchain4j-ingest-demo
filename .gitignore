@@ -1,0 +1,6 @@
+# Runtime state: file register and store snapshot
+data/
+
+# Build output and Camel JBang working files
+target/
+.camel*
